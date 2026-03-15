@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Archivo_Black, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { Providers } from "@/src/providers";
 
 const archivo = Archivo_Black({
   variable: "--font-archivo",
@@ -26,13 +27,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${archivo.variable} ${jetbrains.variable} antialiased`}>
-        {/* Desktop Wrapper */}
-        <div className="min-h-screen flex items-center justify-center bg-[#0A0A0A]">
-          {/* Mobile Frame */}
-          <div className="w-[390px] h-[844px] bg-[#F5F0E8] neo-border relative overflow-hidden flex flex-col shadow-[0_0_100px_rgba(0,0,0,0.5)]">
-            {children}
+        <Providers>
+          {/* Desktop Wrapper */}
+          <div className="min-h-screen flex items-center justify-center bg-[#0A0A0A]">
+            {/* Mobile Frame */}
+            <div className="w-[390px] h-[844px] bg-[#F5F0E8] neo-border relative overflow-hidden flex flex-col shadow-[0_0_100px_rgba(0,0,0,0.5)]">
+              {children}
+            </div>
           </div>
-        </div>
+        </Providers>
       </body>
     </html>
   );
