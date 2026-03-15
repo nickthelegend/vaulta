@@ -1,4 +1,4 @@
-import { http, createConfig } from 'wagmi';
+import { createConfig, http } from 'wagmi';
 import { base } from 'wagmi/chains';
 import { connectorsForWallets } from '@rainbow-me/rainbowkit';
 import { 
@@ -7,6 +7,8 @@ import {
   rainbowWallet, 
   coinbaseWallet 
 } from '@rainbow-me/rainbowkit/wallets';
+
+const rpcUrl = process.env.NEXT_PUBLIC_RPC_URL || 'https://mainnet.base.org';
 
 const connectors = connectorsForWallets(
   [
@@ -17,7 +19,7 @@ const connectors = connectorsForWallets(
   ],
   {
     appName: 'VAULTA',
-    projectId: 'YOUR_PROJECT_ID', // Recommended to provide a WalletConnect project ID
+    projectId: 'YOUR_PROJECT_ID',
   }
 );
 
@@ -25,7 +27,7 @@ export const wagmiConfig = createConfig({
   connectors,
   chains: [base],
   transports: {
-    [base.id]: http('https://mainnet.base.org'), 
+    [base.id]: http(rpcUrl),
   },
   ssr: true,
 });

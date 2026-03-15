@@ -6,7 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "fork": "bash scripts/fork.sh",
+    "fork:fund": "bash scripts/fund-usdc.sh && bash scripts/fund-weth.sh",
+    "dev:local": "cp .env.local .env && next dev",
+    "dev:mainnet": "cp .env.mainnet .env && next dev"
   },
   "dependencies": {
     "@farcaster/auth-kit": "^0.8.2",
