@@ -29,13 +29,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${archivo.variable} ${jetbrains.variable} antialiased`}>
         <Providers>
-          {/* Desktop Wrapper */}
-          <div className="min-h-screen flex items-center justify-center bg-[#0A0A0A]">
-            {/* Mobile Frame */}
-            <div className="w-[390px] h-[844px] bg-[#F5F0E8] neo-border relative overflow-hidden flex flex-col shadow-[0_0_100px_rgba(0,0,0,0.5)]">
-              {children}
-            </div>
-          </div>
+          {children}
         </Providers>
       </body>
     </html>
