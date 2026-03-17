@@ -14,26 +14,27 @@ function cn(...inputs: ClassValue[]) {
 
 export function ConnectButton() {
   const [isOpen, setIsOpen] = useState(false);
-  const { isFullyConnected, displayName, isFarcasterConnected } = useVaultaAuth();
+  const { isFullyConnected, displayName, isFarcasterConnected, isConnecting } = useVaultaAuth();
 
   return (
     <>
       {!isFullyConnected ? (
-        <button 
+        <button
           onClick={() => setIsOpen(true)}
-          className="neo-button h-12 px-6 bg-[#FFE500] text-[10px] font-black uppercase tracking-widest italic flex items-center gap-2 font-archivo italic border-2 border-black"
+          className="neo-button h-12 px-6 bg-[#FFE500] text-[10px] font-black uppercase tracking-widest italic flex items-center gap-2 font-archivo italic border-2 border-black disabled:opacity-70"
+          disabled={isConnecting}
         >
-          <Wallet size={16} strokeWidth={3} />
-          Select Wallet
+          <Wallet size={16} strokeWidth={3} className={isConnecting ? "animate-spin" : ""} />
+          {isConnecting ? 'Connecting...' : 'Select Wallet'}
         </button>
       ) : (
-        <button 
+        <button
           onClick={() => setIsOpen(true)}
           className="neo-button h-12 px-5 bg-white text-[10px] font-black uppercase tracking-widest italic flex items-center gap-3 hover:bg-[#FFE500] transition-colors border-2 border-black font-archivo italic"
         >
           <div className={cn(
-              "w-2.5 h-2.5 rounded-full animate-pulse",
-              isFarcasterConnected ? "bg-purple-500" : "bg-green-500"
+            "w-2.5 h-2.5 rounded-full animate-pulse",
+            isFarcasterConnected ? "bg-purple-500" : "bg-green-500"
           )} />
           <span className="truncate max-w-[120px]">{displayName}</span>
           <div className="bg-black text-white px-2 py-0.5 rounded-[4px] text-[8px] font-mono">BASE</div>
@@ -42,14 +43,18 @@ export function ConnectButton() {
 
       <AnimatePresence>
         {isOpen && (
-            <div className="absolute inset-0 z-[100] flex flex-col pointer-events-none">
-                <motion.div 
-                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                    onClick={() => setIsOpen(false)}
-                    className="absolute inset-0 bg-black/40 backdrop-blur-sm pointer-events-auto"
-                />
+          <div className="fixed inset-0 z-[100] flex flex-col pointer-events-none">
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setIsOpen(false)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-md pointer-events-auto"
+            />
+            <div className="relative flex-1 flex flex-col justify-end pointer-events-none">
+              <div className="w-full max-w-[390px] mx-auto pointer-events-auto relative">
                 <ConnectModal onClose={() => setIsOpen(false)} />
+              </div>
             </div>
+          </div>
         )}
       </AnimatePresence>
     </>

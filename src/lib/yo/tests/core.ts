@@ -21,8 +21,8 @@ const walletClient = createWalletClient({
 
 // Shared state between tests
 let shared: any = {
-  yoUSD_tokens: 0n,
-  yoUSD_balance: 0n
+  yoUSD_tokens: BigInt(0),
+  yoUSD_balance: BigInt(0)
 };
 
 export const networkTests = [
@@ -53,10 +53,10 @@ export const networkTests = [
       const block = await client.getBlock();
       const now = BigInt(Math.floor(Date.now() / 1000));
       const diff = now - block.timestamp;
-      const isRecent = diff < 86400n;
-      return { 
-        status: isRecent ? 'PASS' : 'WARN', 
-        value: `Fork timestamp: ${new Date(Number(block.timestamp) * 1000).toLocaleTimeString()} ${isRecent ? '✓' : '(STALE)'}` 
+      const isRecent = diff < BigInt(86400);
+      return {
+        status: isRecent ? 'PASS' : 'WARN',
+        value: `Fork timestamp: ${new Date(Number(block.timestamp) * 1000).toLocaleTimeString()} ${isRecent ? '✓' : '(STALE)'}`
       };
     }
   }
@@ -83,7 +83,7 @@ export const walletTests = [
         functionName: 'balanceOf',
         args: [TEST_WALLET]
       });
-      if (balance > 0n) return { status: 'PASS', value: `USDC Balance: ${parseFloat(formatUnits(balance, USDC_DECIMALS)).toLocaleString()} USDC ✓` };
+      if (balance > BigInt(0)) return { status: 'PASS', value: `USDC Balance: ${parseFloat(formatUnits(balance, USDC_DECIMALS)).toLocaleString()} USDC ✓` };
       throw new Error('Run "npm run fork:fund" first');
     }
   },
@@ -339,7 +339,7 @@ export const depositTests = [
     name: 'Execute Deposit',
     run: async () => {
       const amount = parseUnits('100', USDC_DECIMALS);
-      const minShares = (shared.yoUSD_tokens * 995n) / 1000n;
+      const minShares = (shared.yoUSD_tokens * BigInt(995)) / BigInt(1000);
       const hash = await walletClient.writeContract({
         address: YO_CONTRACTS.gateway as `0x${string}`,
         abi: yoGatewayAbi,
@@ -409,14 +409,14 @@ export const withdrawalTests = [
     group: 'Withdraw',
     name: 'Execute Withdrawal',
     run: async () => {
-      const sharesToRedeem = shared.yoUSD_balance / 2n;
+      const sharesToRedeem = shared.yoUSD_balance / BigInt(2);
       const previewAssets = await client.readContract({
         address: YO_CONTRACTS.gateway as `0x${string}`,
         abi: yoGatewayAbi,
         functionName: 'previewRedeem',
         args: [YO_CONTRACTS.vaults.yoUSD as `0x${string}`, sharesToRedeem]
       });
-      const minAssets = (previewAssets * 995n) / 1000n;
+      const minAssets = (previewAssets * BigInt(995)) / BigInt(1000);
       const hash = await walletClient.writeContract({
         address: YO_CONTRACTS.gateway as `0x${string}`,
         abi: yoGatewayAbi,

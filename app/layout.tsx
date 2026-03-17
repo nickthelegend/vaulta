@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Archivo_Black, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import "@/src/lib/polyfill";
 import { Providers } from "@/src/providers";
 
 const archivo = Archivo_Black({

@@ -1,5 +1,4 @@
 'use client';
-
 import { useState, useEffect, useMemo } from 'react';
 import {
   Home as HomeIcon, Target, Flame, DollarSign, User, ArrowUp, CheckCircle2, Plus, Share2, Skull,
@@ -179,13 +178,15 @@ export default function VaultaApp() {
 
   // Step 2: Refresh data after chain confirmation
   useEffect(() => {
-    const lastActive = localStorage.getItem('vaulta_last_tx');
-    if (lastActive) {
-      const timer = setTimeout(() => {
-        refetch();
-        localStorage.removeItem('vaulta_last_tx');
-      }, 3000);
-      return () => clearTimeout(timer);
+    if (typeof window !== 'undefined') {
+      const lastActive = localStorage.getItem('vaulta_last_tx');
+      if (lastActive) {
+        const timer = setTimeout(() => {
+          refetch();
+          localStorage.removeItem('vaulta_last_tx');
+        }, 3000);
+        return () => clearTimeout(timer);
+      }
     }
   }, [refetch]);
 
@@ -711,7 +712,9 @@ function DepositFlowOverlay({ onClose, onCelebration }: { onClose: () => void, o
     try {
       const result = await deposit(selectedVault, amountBigInt, goals, totalValueUSD);
       setSuccess(true);
-      localStorage.setItem('vaulta_last_tx', Date.now().toString());
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('vaulta_last_tx', Date.now().toString());
+      }
 
       if (result?.newBadges && result.newBadges.length > 0) {
         const badge = result.newBadges[0];
@@ -1198,7 +1201,9 @@ function EmergencyWithdrawOverlay({ onClose }: { onClose: () => void }) {
       const hash = await withdraw('yoUSD', yoUSDVault.yoTokenBalance, totalValueUSD);
       if (hash) {
         setTxHash(hash);
-        localStorage.setItem('vaulta_last_tx', Date.now().toString());
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('vaulta_last_tx', Date.now().toString());
+        }
 
         // Edge Case: Recalculate goal health
         const activeGoal = goals.find((g: any) => g.status === 'active');

@@ -15,7 +15,7 @@ export function useConvexUser() {
 
   // Silently clear expired or mismatched Farcaster sessions
   useEffect(() => {
-    if (isFarcasterConnected && farcasterUser && farcasterUser.fid !== undefined) {
+    if (isFarcasterConnected && farcasterUser && farcasterUser.fid !== undefined && typeof window !== 'undefined') {
       const storedFid = localStorage.getItem('vaulta_fc_fid');
       if (storedFid && parseInt(storedFid) !== farcasterUser.fid) {
         // Mismatch - clear session

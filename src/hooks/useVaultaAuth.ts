@@ -12,7 +12,10 @@ export function useVaultaAuth() {
   const { openConnectModal } = useConnectModal();
 
   const { profile: farcasterUser, isAuthenticated: isFarcasterConnected } = useProfile();
-  const { signIn: connectFarcaster } = useSignIn({});
+  const { signIn: connectFarcaster, isPolling: isFarcasterConnecting } = useSignIn({});
+  const { isConnecting: isWalletConnecting } = useAccount();
+
+  const isConnecting = isWalletConnecting || isFarcasterConnecting;
 
   // Unified state
   const isFullyConnected = !!(address || farcasterUser);
@@ -27,7 +30,9 @@ export function useVaultaAuth() {
 
   const disconnect = () => {
     wagmiDisconnect();
-    localStorage.removeItem(FC_SESSION_KEY);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(FC_SESSION_KEY);
+    }
   };
 
   return {
@@ -37,6 +42,7 @@ export function useVaultaAuth() {
     farcasterUser,
     isFarcasterConnected,
     isFullyConnected,
+    isConnecting,
     displayName,
     avatar,
     connectWallet: openConnectModal,
