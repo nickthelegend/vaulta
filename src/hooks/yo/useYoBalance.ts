@@ -1,5 +1,3 @@
-'use client';
-
 import { useReadContract } from 'wagmi';
 import { erc20Abi, yoGatewayAbi } from '@/src/lib/yo/abi';
 import { formatUnits } from 'viem';
@@ -20,14 +18,14 @@ export function useYoBalance(vaultAddress: `0x${string}`, userAddress: `0x${stri
     address: YO_CONTRACTS.gateway as `0x${string}`,
     abi: yoGatewayAbi,
     functionName: 'previewRedeem',
-    args: yoTokenBalance ? [vaultAddress, yoTokenBalance] : undefined,
+    args: (vaultAddress && yoTokenBalance !== undefined) ? [vaultAddress, yoTokenBalance] : undefined,
     query: { enabled: !!yoTokenBalance },
   });
 
   const assetValueUSD = previewAssets ? parseFloat(formatUnits(previewAssets, USDC_DECIMALS)) : 0;
 
   return {
-    yoTokenBalance: yoTokenBalance || 0n,
+    yoTokenBalance: yoTokenBalance || BigInt(0),
     assetValueUSD,
     isLoading: isBalanceLoading || isPreviewLoading,
   };

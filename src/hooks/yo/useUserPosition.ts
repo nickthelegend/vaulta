@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAccount } from 'wagmi';
 import { useYoBalance } from './useYoBalance';
 import { yoApi } from '@/src/lib/yo/api';
 import { YO_CONTRACTS } from '@/src/lib/yo/constants';
-import { UserPosition, YoVault } from '@/src/lib/yo/types';
+import { UserPosition } from '@/src/lib/yo/types';
 
 export function useUserPosition() {
   const { address } = useAccount();
@@ -18,35 +18,42 @@ export function useUserPosition() {
   const [history, setHistory] = useState<{ deposits: any[]; withdrawals: any[] } | null>(null);
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
 
-  useEffect(() => {
+  const fetchHistory = useCallback(async () => {
     if (!address) return;
-    async function fetchHistory() {
-      setIsHistoryLoading(true);
-      try {
-        // Fetching history for yoUSD as an example/aggregator
-        const data = await yoApi.getUserHistory(YO_CONTRACTS.vaults.yoUSD, address);
-        setHistory(data);
-      } catch (e) {
-        console.error('History fetch error:', e);
-      } finally {
-        setIsHistoryLoading(false);
-      }
+    setIsHistoryLoading(true);
+    try {
+      const data = await yoApi.getUserHistory(YO_CONTRACTS.vaults.yoUSD, address);
+      setHistory(data);
+    } catch (e) {
+      console.error('History fetch error:', e);
+    } finally {
+      setIsHistoryLoading(false);
     }
-    fetchHistory();
   }, [address]);
+
+  useEffect(() => {
+    fetchHistory();
+  }, [fetchHistory]);
 
   const totalValueUSD = yoUSD.assetValueUSD + yoETH.assetValueUSD + yoBTC.assetValueUSD;
 
   const vaults: UserPosition[] = [
-    { vault: 'yoUSD', ...yoUSD, yieldEarned: 0, apy: 0 }, // Yield/APY to be populated from API
-    { vault: 'yoETH', ...yoETH, yieldEarned: 0, apy: 0 },
-    { vault: 'yoBTC', ...yoBTC, yieldEarned: 0, apy: 0 },
+    { vault: 'yoUSD', yoTokenBalance: yoUSD.yoTokenBalance, assetValue: yoUSD.assetValueUSD, yieldEarned: 0, apy: 0 },
+    { vault: 'yoETH', yoTokenBalance: yoETH.yoTokenBalance, assetValue: yoETH.assetValueUSD, yieldEarned: 0, apy: 0 },
+    { vault: 'yoBTC', yoTokenBalance: yoBTC.yoTokenBalance, assetValue: yoBTC.assetValueUSD, yieldEarned: 0, apy: 0 },
   ];
+
+  const refetch = useCallback(async () => {
+    // In wagmi hooks, refetching happens automatically if dependencies change or we call refetch on the hook result.
+    // Our useYoBalance returns its own internal data, but useUserPosition doesn't expose its refetches.
+    await fetchHistory();
+  }, [fetchHistory]);
 
   return {
     totalValueUSD,
     vaults,
-    totalYieldEarned: 0, // Calculated from history vs current value
+    totalYieldEarned: 0,
     isLoading: yoUSD.isLoading || yoETH.isLoading || yoBTC.isLoading || isHistoryLoading,
+    refetch
   };
 }

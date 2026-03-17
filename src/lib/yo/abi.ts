@@ -14,3 +14,7 @@ export const erc20Abi = parseAbi([
   'event Transfer(address indexed from, address indexed to, uint256 value)',
   'event Approval(address indexed owner, address indexed spender, uint256 value)'
 ]);
+
+export const yoVaultAbi = parseAbi([
+  'function asset() view returns (address)'
+]);

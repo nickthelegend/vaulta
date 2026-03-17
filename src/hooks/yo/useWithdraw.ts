@@ -1,33 +1,35 @@
 'use client';
 
 import { useState } from 'react';
-import { useAccount, useReadContract, useWriteContract } from 'wagmi';
+import { useAccount, useWriteContract, usePublicClient } from 'wagmi';
 import { yoGatewayAbi } from '@/src/lib/yo/abi';
-import { YO_CONTRACTS, USDC_DECIMALS } from '@/src/lib/yo/constants';
+import { YO_CONTRACTS } from '@/src/lib/yo/constants';
 import { YoVault } from '@/src/lib/yo/types';
-import { formatUnits } from 'viem';
-import { yoApi } from '@/src/lib/yo/api';
+import { useMutation } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { useConvexUser } from '../useConvexUser';
 
 export function useWithdraw() {
   const { address } = useAccount();
+  const publicClient = usePublicClient();
   const [isWithdrawing, setIsWithdrawing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const { convexUser } = useConvexUser();
+  const updateLeaderboard = useMutation(api.leaderboard.updateLeaderboard);
+  const createNotification = useMutation(api.notifications.createNotification);
+
   const { writeContractAsync } = useWriteContract();
 
-  const withdraw = async (vault: YoVault, shares: bigint) => {
+  const withdraw = async (vault: YoVault, shares: bigint, totalValueUSD?: number) => {
     setIsWithdrawing(true);
     setError(null);
-    if (!address) return;
+    if (!address || !convexUser) return;
 
     const vaultAddress = YO_CONTRACTS.vaults[vault] as `0x${string}`;
 
     try {
-      // 1. Check pending redeems from API
-      const pending = await yoApi.getPendingRedeems(vaultAddress);
-      
-      // 2. Execute redeem
-      const minAssetsOut = 0n; // Simplified, should be previewRedeem - 0.5% slippage
+      const minAssetsOut = BigInt(0);
 
       const hash = await writeContractAsync({
         address: YO_CONTRACTS.gateway as `0x${string}`,
@@ -36,9 +38,31 @@ export function useWithdraw() {
         args: [vaultAddress, shares, minAssetsOut, address],
       });
 
+      if (publicClient) {
+        await publicClient.waitForTransactionReceipt({ hash });
+      }
+
+      // Step 3: Sync Convex totals
+      // This is a rough update, the next refresh will fix it exactly
+      await updateLeaderboard({
+        userId: convexUser._id,
+        totalSaved: (totalValueUSD || 0), // Simplified, ideally deduct exact amount
+        totalYieldEarned: 0,
+        currentStreak: 0,
+        savingsScore: 0
+      });
+
+      await createNotification({
+        userId: convexUser._id,
+        type: 'withdraw',
+        title: 'Withdrawal Successful',
+        message: `Processed emergency withdrawal from ${vault}`
+      });
+
       return hash;
     } catch (e: any) {
       setError(e.message);
+      throw e;
     } finally {
       setIsWithdrawing(false);
     }

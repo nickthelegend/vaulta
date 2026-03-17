@@ -10,13 +10,13 @@ export function useVaultaAuth() {
   const { address, isConnected, chainId } = useAccount();
   const { disconnect: wagmiDisconnect } = useDisconnect();
   const { openConnectModal } = useConnectModal();
-  
+
   const { profile: farcasterUser, isAuthenticated: isFarcasterConnected } = useProfile();
-  const { signIn: connectFarcaster } = useSignIn();
+  const { signIn: connectFarcaster } = useSignIn({});
 
   // Unified state
   const isFullyConnected = !!(address || farcasterUser);
-  
+
   const displayName = useMemo(() => {
     if (farcasterUser?.username) return `@${farcasterUser.username}`;
     if (address) return `${address.slice(0, 6)}...${address.slice(-4)}`;
